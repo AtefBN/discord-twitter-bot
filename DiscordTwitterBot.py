@@ -10,6 +10,8 @@ from dateutil import tz
 from twython import Twython, TwythonStreamer
 from twython.exceptions import TwythonError
 import upsidedown
+from constants import *
+import requests
 
 
 ## Data Storage
@@ -286,11 +288,12 @@ class TwitterBot(discord.Client):
         self.ntweets = 0
         self.stream = None
         self.stream_thread = None
-        self.pre = 'TwitterBot: ' # message preamble
+        self.pre = 'Robocimpu: ' # message preamble
 
         # Auto login
         self.data = Storage()
         self.login(*self.data.discord)
+        self.channels = [channel for channel in self.get_all_channels()]
 
     @staticmethod
     def make_mentions(mention_list):
@@ -365,11 +368,11 @@ as the given channel. If channel is None, show active channels from all servers.
         if message.author.id == self.user.id:
             return
         # Only read commands that we are mentioned in
-        elif self.user.id not in [u.id for u in message.mentions]:
-            return
+        # elif self.user.id not in [u.id for u in message.mentions]:
+        #     return
         # Only read commands from channels we are active in
         elif message.channel.id not in [c.id for c in self.channels]:
-            if '!addchannel' not in lcontent:
+            if '!wakeup' not in lcontent:
                 return
 
         ## Parse commands in current channel
@@ -428,9 +431,15 @@ as the given channel. If channel is None, show active channels from all servers.
                 self.follow(tuser, message.channel)
 
         # $addchannel - add new channel to receive tweets
-        elif '!addchannel' in lcontent:
+        elif '!wakeup' in lcontent:
+            channel_list = [c for c in self.get_all_channels()]
+            for c in channel_list:
+                if c.type == 'text' and c.name.encode('utf-8') in allowed_channels:
+                    self.channels.append(c)
             self.channels.append(message.channel)
-            self.send_message(message.channel, self.pre+"Channel now active.")
+            self.send_message(message.channel, "I am awake i swear ResidentSleeper ")
+            for tuser in initial_followed_users:
+                self.follow(tuser, message.channel)
 
         # $rmchannel - remove channel from receiving tweets
         elif '!rmchannel' in lcontent:
@@ -461,23 +470,42 @@ as the given channel. If channel is None, show active channels from all servers.
         elif '!quit' in lcontent:
             self.end()
         elif '!flip' in lcontent:
-            tableflip = b'(\xe2\x95\xaf\xc2\xb0\xe2\x96\xa1\xc2\xb0\xef\xbc\x89\xe2\x95\xaf\xef\xb8\xb5 ' \
-                        b'\xe2\x94\xbb\xe2\x94\x81\xe2\x94\xbb'
-            print('HERE...')
-            try:
-                self.send_message(message.channel, tableflip.decode('utf-8') + '   '
-                                  + upsidedown.transform(str(message.author)))
-            except AttributeError:
-                print('FUCK')
+            lsplit = lcontent.split()
+            ind = lsplit.index('!flip')
+            if len(lsplit) > ind and ind >= 0:
+                tuser = message.content.split()[ind+1]
+                try:
+                    self.send_message(message.channel, table_flip.decode('utf-8') + '   '
+                                      + upsidedown.transform(tuser))
+                except AttributeError:
+                    print('FUCK')
         elif '!hype' in lcontent:
-            hype_message = 'batmanPls DogePls HanaPls RareCimp cimpHype cimpHype ' \
-                           'cimpHype RareCimp HanaPls DogePls batmanPls'
-            self.send_message(message.channel, hype_message)
+            self.send_message(message.channel, hype_text)
+        elif '!mediaso' in lcontent:
+            self.send_message(message.channel, mediaso)
+        elif '!selfdestruct' in lcontent:
+            self.send_message(message.channel, selfdestruct)
+        elif '!8ball' in lcontent:
+            lsplit = lcontent.split()
+            ind = lsplit.index('!8ball')
+            print(lsplit)
+            test = False
+            for c in lsplit:
+                if '?' in c:
+                    test = True
+            if len(lsplit) >= 3 and ind >= 0 and test:
+                try:
+                    r = requests.get('https://api.rtainc.co/twitch/8ball')
+                    self.send_message(message.channel, r.text)
+                except Exception:
+                    self.send_message(message.channel, 'Oops, some error occured beg Schlongdaime to fix me ;__;')
+            else:
+                self.send_message(message.channel, 'Please ask a valid question you pleb DansGame')
 
     def on_ready(self):
         """Called when connected as a Discord client. Sets up the TwitterUserStream
 and starts following a user if one was set upon construction."""
-        print("Connected.")
+        print(str(self.get_timestamp()) + " : Connected.")
         # Setup twitter stream
         self.stream = TwitterUserStream()
         self.stream.add(self.tweet)
@@ -502,8 +530,14 @@ Returns False if the user does not exist, True otherwise."""
         self.tuser = tuser
         self.ntweets = 0
         self.stream_thread = self.stream.follow_thread(tuser)
-        self.send_all(self.pre+"Now following @"+self.tuser+".")
+        print(str(self.get_timestamp()) + " : Now following @"+self.tuser+".")
+        # self.send_all(self.pre+"Now following @"+self.tuser+".")
         return True
+
+    @staticmethod
+    def get_timestamp():
+        i = datetime.now()
+        return i
 
     TIME_FMT = """%a %b %d %H:%M:%S %Y"""
     @staticmethod
