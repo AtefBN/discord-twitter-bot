@@ -9,6 +9,8 @@ from datetime import datetime
 from dateutil import tz
 from twython import Twython, TwythonStreamer
 from twython.exceptions import TwythonError
+import upsidedown
+
 
 ## Data Storage
 class Storage:
@@ -21,7 +23,7 @@ class Storage:
             self.asecret = self.dct['asecret']
             self.otoken = self.dct['otoken']
             self.osecret = self.dct['osecret']
-            
+
             self.twitter = (self.akey, self.asecret, self.otoken, self.osecret)
             self.discord = (self.d_email, self.d_pass)
 
@@ -160,7 +162,7 @@ or None if the user is invalid."""
         except TwythonError as e:
             self.on_error(e.error_code, e.msg)
         return None
-    
+
     def follow(self, user=None, get_last=True):
         """Start streaming tweents from a user. This method will block basically
 forever, so running it in a Thread is a good idea.
@@ -240,9 +242,9 @@ False otherwise."""
             for tweet in self._lastn:
                 if data['id_str'] == tweet['id_str']:
                     return
-        
+
         return True
-        
+
     def on_success(self, data):
         """Called by TwythonStreamer when a message is received on the
 underlying stream. Dispatches the message to all registered callbacks (in the
@@ -258,7 +260,7 @@ enabled."""
         # Notify callbacks
         for callback in self._callbacks:
             callback(data)
-            
+
     def on_error(self, code, data):
         """Called when there is an error. Disconnects from the stream after
 receiving too many errors. Sets the 'error' attribute to an appropriate error
@@ -296,7 +298,7 @@ class TwitterBot(discord.Client):
         for user in mention_list:
             mstr += user.mention() + " "
         return mstr
-    
+
     def send_all(self, message, mention=False):
         """Send a message to all active channels."""
         mention_str = ""
@@ -305,7 +307,7 @@ class TwitterBot(discord.Client):
                 mention = self.mentions.get(chan.id, [])
                 mention_str = self.make_mentions(mention)
             self.send_message(chan, message + mention_str, mention)
-            
+
     def halp(self):
         """Send the clients the usage."""
         return ("""To issue commmands to **TwitterBot**, type a message containing
@@ -348,14 +350,14 @@ as the given channel. If channel is None, show active channels from all servers.
                 mstr += "@" + u.name + ", "
         if mstr:
             mstr = mstr[:-2] # strip extra comma
-        
+
         return ("**TwitterBot**\n"+
                 "Currently following: @" + (self.tuser or "None") + "\n" +
                 "Tweets streamed: " + str(self.ntweets) + "\n" +
                 "Last tweet from user: " + last_time + "\n" +
                 "Active channels on server: (" + str(ccount) + ") " + cstr + "\n" +
                 "Mentions in this channel: " + mstr)
-        
+
     def on_message(self, message):
         lcontent = message.content.strip().lower()
 
@@ -367,21 +369,21 @@ as the given channel. If channel is None, show active channels from all servers.
             return
         # Only read commands from channels we are active in
         elif message.channel.id not in [c.id for c in self.channels]:
-            if '$addchannel' not in lcontent:
+            if '!addchannel' not in lcontent:
                 return
 
         ## Parse commands in current channel
 
         # $help - print help
-        if '$help' in lcontent:
+        if '!help' in lcontent:
             self.send_message(message.channel, self.halp(), False)
 
         # $info - dump some misc info
-        elif '$info' in lcontent:
+        elif '!info' in lcontent:
             self.send_message(message.channel, self.info(message.channel), False)
 
         # $last - show last tweet
-        elif '$last' in lcontent:
+        elif '!last' in lcontent:
             old_count = self.ntweets
             if self.stream.last():
                 self.tweet(self.stream.last(), True, False)
@@ -390,55 +392,55 @@ as the given channel. If channel is None, show active channels from all servers.
             self.ntweets = old_count # not actually a new tweet
 
         # $top <N> - show last N tweets
-        elif '$top' in lcontent:
+        elif '!top' in lcontent:
             latest = list(self.stream.latest())
 
             # Get count argument
             count = self.stream.store
             lsplit = lcontent.split()
-            ind = lsplit.index('$top')
+            ind = lsplit.index('!top')
             if len(lsplit) > ind and ind >= 0:
                 try:
                     count = int(lsplit[ind+1])
                 except ValueError:
                     self.send_message(message.channel,
-                                      self.pre+"Invalid $top count, defaulting to "
+                                      self.pre+"Invalid !top count, defaulting to "
                                       +str(count)+".")
             # Hard limits on count
             if count < 1:
                 return
             elif count > self.stream.store:
                 count = self.stream.store
-                
+
             old_count = self.ntweets
             for tweet in latest[-count:]:
                 self.tweet(tweet, True, False)
             self.ntweets = old_count # don't add to tweet count
 
         # $follow <user> - switch to following a new Twitter user
-        elif '$follow' in lcontent:
+        elif '!follow' in lcontent:
             # e.g. "$follow user"
             lsplit = lcontent.split()
-            ind = lsplit.index('$follow')
+            ind = lsplit.index('!follow')
             if len(lsplit) > ind and ind >= 0:
                 tuser = message.content.split()[ind+1]
                 self.stream.disconnect()
                 self.follow(tuser, message.channel)
 
         # $addchannel - add new channel to receive tweets
-        elif '$addchannel' in lcontent:
+        elif '!addchannel' in lcontent:
             self.channels.append(message.channel)
             self.send_message(message.channel, self.pre+"Channel now active.")
 
         # $rmchannel - remove channel from receiving tweets
-        elif '$rmchannel' in lcontent:
+        elif '!rmchannel' in lcontent:
             ind = self.channels.index(message.channel)
             if ind >= 0:
                 del self.channels[ind]
                 self.send_message(message.channel, self.pre+"Channel removed.")
 
         # $mention - register user to be mentioned on receiving tweets
-        elif '$mention' in lcontent:
+        elif '!mention' in lcontent:
             if message.channel.id not in self.mentions:
                 self.mentions[message.channel.id] = list()
             self.mentions[message.channel.id].append(message.author)
@@ -446,18 +448,31 @@ as the given channel. If channel is None, show active channels from all servers.
                 self.pre+"You WILL be @mentioned when tweets are received.")
 
         # $nomention - remove user from mention list per channel
-        elif '$nomention' in lcontent:
+        elif '!nomention' in lcontent:
             if message.channel.id in self.mentions:
                 self.mentions[message.channel.id].remove(message.author)
                 self.send_message(message.channel,
                     self.pre+"You will NOT be @mentioned when tweets are received.")
 
-        elif '$resend' in lcontent:
+        elif '!resend' in lcontent:
             self.tweet(self.stream.last())
 
         # $quit - kill the bot
-        elif '$quit' in lcontent:
+        elif '!quit' in lcontent:
             self.end()
+        elif '!flip' in lcontent:
+            tableflip = b'(\xe2\x95\xaf\xc2\xb0\xe2\x96\xa1\xc2\xb0\xef\xbc\x89\xe2\x95\xaf\xef\xb8\xb5 ' \
+                        b'\xe2\x94\xbb\xe2\x94\x81\xe2\x94\xbb'
+            print('HERE...')
+            try:
+                self.send_message(message.channel, tableflip.decode('utf-8') + '   '
+                                  + upsidedown.transform(str(message.author)))
+            except AttributeError:
+                print('FUCK')
+        elif '!hype' in lcontent:
+            hype_message = 'batmanPls DogePls HanaPls RareCimp cimpHype cimpHype ' \
+                           'cimpHype RareCimp HanaPls DogePls batmanPls'
+            self.send_message(message.channel, hype_message)
 
     def on_ready(self):
         """Called when connected as a Discord client. Sets up the TwitterUserStream
@@ -477,12 +492,12 @@ Returns False if the user does not exist, True otherwise."""
             if src_channel is not None:
                 self.send_message(src_channel, self.pre+self.stream.error)
             return False
-            
+
         # Stop previous thread, if any
         if self.stream_thread:
             self.stream.disconnect()
             self.stream_thread.join()
-            
+
         # Setup new thread to run the twitter stream in background
         self.tuser = tuser
         self.ntweets = 0
@@ -497,7 +512,7 @@ Returns False if the user does not exist, True otherwise."""
         utc = dt.replace(tzinfo=tz.tzutc())
         local = utc.astimezone(tz.tzlocal())
         return local.strftime(TwitterBot.TIME_FMT)
-        
+
     def tweet(self, data, timestamp=False, mention=True):
         """Display a tweet to the current channel. Increments ntweets."""
         text = data and data.get('text')
