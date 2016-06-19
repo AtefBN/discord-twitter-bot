@@ -2,7 +2,6 @@
 
 import discord
 import pickle
-import time
 import threading
 
 from datetime import datetime
@@ -12,6 +11,7 @@ from twython.exceptions import TwythonError
 import upsidedown
 from constants import *
 import requests
+import random
 
 
 ## Data Storage
@@ -276,6 +276,7 @@ message."""
             self.disconnect()
 
 
+
 class TwitterBot(discord.Client):
     def __init__(self, tuser=None):
         """Connect to the built-in Discord server and stream messages
@@ -469,22 +470,31 @@ as the given channel. If channel is None, show active channels from all servers.
         # $quit - kill the bot
         elif '!quit' in lcontent:
             self.end()
+
         elif '!flip' in lcontent:
             lsplit = lcontent.split()
             ind = lsplit.index('!flip')
             if len(lsplit) > ind and ind >= 0:
-                tuser = message.content.split()[ind+1]
+                target = message.content.split()[ind+1]
                 try:
-                    self.send_message(message.channel, table_flip.decode('utf-8') + '   '
-                                      + upsidedown.transform(tuser))
+                    if target not in exception_users:
+                        self.send_message(message.channel, table_flip.decode('utf-8') + '   '
+                                          + upsidedown.transform(target))
+                    else:
+                        self.send_message(message.channel, exception_msg + ' ' + table_flip.decode('utf-8') + '   ' +
+                                          upsidedown.transform(str(message.author)))
                 except AttributeError:
                     print('FUCK')
+
         elif '!hype' in lcontent:
             self.send_message(message.channel, hype_text)
+
         elif '!mediaso' in lcontent:
             self.send_message(message.channel, mediaso)
+
         elif '!selfdestruct' in lcontent:
             self.send_message(message.channel, selfdestruct)
+
         elif '!8ball' in lcontent:
             lsplit = lcontent.split()
             ind = lsplit.index('!8ball')
@@ -501,6 +511,18 @@ as the given channel. If channel is None, show active channels from all servers.
                     self.send_message(message.channel, 'Oops, some error occured beg Schlongdaime to fix me ;__;')
             else:
                 self.send_message(message.channel, 'Please ask a valid question you pleb DansGame')
+        elif '!choose' in lcontent:
+            lsplit = lcontent.split()
+            ind = lsplit.index('!choose')
+            lsplit = list(set(lsplit))
+            lsplit.remove('!choose')
+            if 'or' in lsplit:
+                lsplit.remove('or')
+            if lsplit:
+                self.send_message(message.channel, "I'll go with **" + random.choice(lsplit) + "** any day of the week.")
+            else:
+                self.send_message(message.channel, "Enter a valid list of choices you pleb DansGame")
+
 
     def on_ready(self):
         """Called when connected as a Discord client. Sets up the TwitterUserStream
@@ -593,6 +615,7 @@ def test():
 def main():
     t = TwitterBot()
     t.run()
+
 
 ## Initialization
 if __name__ == '__main__':

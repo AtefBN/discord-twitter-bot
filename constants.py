@@ -6,4 +6,7 @@ mediaso = 'PepePls'
 selfdestruct = 'SELF DESTRUCT SEQUENCE INITIATED. PLS RUN AWAY CimpCray'
 initial_followed_users = ['immersedCimp']
 allowed_channels = [b'lobby', b'general', b'whatever']
+exception_users = ['robocimp', 'schlongdaime', 'schlong', 'yond', 'yondaime']
+exception_msg = "Nice try. You think this is funny? How about *this* instead:"
+
 # allowed_channels = [b'general', b'whatever']

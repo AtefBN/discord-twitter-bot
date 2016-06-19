@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## Twitter Bot Setup
 
 import pickle
@@ -70,7 +69,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
 ## Twitter Bot Setup
 
 import pickle
@@ -142,4 +140,3 @@ def main():
 
 if __name__ == "__main__":
     main()
->>>>>>> df33b3a67ce4f8d100ec699d232bf7e4332f1d73
