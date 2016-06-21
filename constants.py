@@ -8,5 +8,17 @@ initial_followed_users = ['immersedCimp']
 allowed_channels = [b'lobby', b'general', b'whatever']
 exception_users = ['robocimp', 'schlongdaime', 'schlong', 'yond', 'yondaime']
 exception_msg = "Nice try. You think this is funny? How about *this* instead:"
-
+muffin_msg_1 = 'throws **'
+muffin_msg_2 = '** into a basin full of tasty Muffins. CimpMuffin  CimpMuffin  CimpMuffin  CimpMuffin'
 # allowed_channels = [b'general', b'whatever']
+
+commands = "```!flip username \n" \
+           "!hype \n" \
+           "!mediaso \n" \
+           "!selfdestruct \n" \
+           "!8ball (must contain ? ) \n" \
+           "!choose list_of_options \n" \
+           "!rps rock paper or scissors \n" \
+           "!muffin username \n" \
+           "!rip \n" \
+           "```"

@@ -12,6 +12,8 @@ import upsidedown
 from constants import *
 import requests
 import random
+from random import choice as randchoice
+
 
 
 ## Data Storage
@@ -522,7 +524,47 @@ as the given channel. If channel is None, show active channels from all servers.
                 self.send_message(message.channel, "I'll go with **" + random.choice(lsplit) + "** any day of the week.")
             else:
                 self.send_message(message.channel, "Enter a valid list of choices you pleb DansGame")
-
+        elif '!rps' in lcontent:
+            lsplit = lcontent.split()
+            ind = lsplit.index('!rps')
+            choice = lsplit[1]
+            rpsbot = {"rock": ":moyai:",
+                      "paper": ":page_facing_up:",
+                      "scissors": ":scissors:"}
+            if choice in rpsbot.keys():
+                botchoice = randchoice(list(rpsbot.keys()))
+                msgs = {
+                    "win": " You win {}!".format(str(message.author)),
+                    "square": " We're square {}!".format(str(message.author)),
+                    "lose": " You lose {}!".format(str(message.author))
+                }
+                if choice == botchoice:
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["square"])
+                elif choice == "rock" and botchoice == "paper":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["lose"])
+                elif choice == "rock" and botchoice == "scissors":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["win"])
+                elif choice == "paper" and botchoice == "rock":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["win"])
+                elif choice == "paper" and botchoice == "scissors":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["lose"])
+                elif choice == "scissors" and botchoice == "rock":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["lose"])
+                elif choice == "scissors" and botchoice == "paper":
+                    self.send_message(message.channel, rpsbot[botchoice] + msgs["win"])
+            else:
+                self.send_message(message.channel, "Choose rock, paper or scissors CimpBro ")
+        elif '!muffin' in lcontent:
+            lsplit = lcontent.split()
+            ind = lsplit.index('!muffin')
+            user = lsplit[1]
+            self.send_message(message.channel, muffin_msg_1 + user + muffin_msg_2)
+        elif 'muffin' in lcontent:
+            self.send_message(message.channel, 'HeavyBreathing')
+        elif '!rip' in lcontent:
+            self.send_message(message.channel, 'PepeRIP')
+        elif '!commands' in lcontent:
+            self.send_message(message.channel, commands)
 
     def on_ready(self):
         """Called when connected as a Discord client. Sets up the TwitterUserStream
