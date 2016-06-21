@@ -507,19 +507,22 @@ as the given channel. If channel is None, show active channels from all servers.
                     test = True
             if len(lsplit) >= 3 and ind >= 0 and test:
                 try:
-                    r = requests.get('https://api.rtainc.co/twitch/8ball')
+                    r = requests.get(ball_url)
                     self.send_message(message.channel, r.text)
                 except Exception:
-                    self.send_message(message.channel, 'Oops, some error occured beg Schlongdaime to fix me ;__;')
+                    self.send_message(message.channel, global_error)
             else:
-                self.send_message(message.channel, 'Please ask a valid question you pleb DansGame')
+                self.send_message(message.channel, ball_error)
         elif '!choose' in lcontent:
             lsplit = lcontent.replace('!choose ', '')
-            lsplit = lsplit.split(' or ')
-            if lsplit:
-                self.send_message(message.channel, "I'll go with **" + random.choice(lsplit) + "** any day of the week.")
+            if 'or' in lsplit:
+                lsplit = lsplit.split(' or ')
+                if lsplit:
+                    self.send_message(message.channel, choose_response_1 + random.choice(lsplit) + choose_response_2)
+                else:
+                    self.send_message(message.channel, choose_command_error)
             else:
-                self.send_message(message.channel, "Enter a valid list of choices you pleb DansGame")
+                self.send_message(message.channel, choose_command_error)
         elif '!rps' in lcontent:
             lsplit = lcontent.split()
             ind = lsplit.index('!rps')
