@@ -514,12 +514,8 @@ as the given channel. If channel is None, show active channels from all servers.
             else:
                 self.send_message(message.channel, 'Please ask a valid question you pleb DansGame')
         elif '!choose' in lcontent:
-            lsplit = lcontent.split()
-            ind = lsplit.index('!choose')
-            lsplit = list(set(lsplit))
-            lsplit.remove('!choose')
-            if 'or' in lsplit:
-                lsplit.remove('or')
+            lsplit = lcontent.replace('!choose ', '')
+            lsplit = lsplit.split(' or ')
             if lsplit:
                 self.send_message(message.channel, "I'll go with **" + random.choice(lsplit) + "** any day of the week.")
             else:

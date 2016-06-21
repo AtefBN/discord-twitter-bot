@@ -9,7 +9,7 @@ allowed_channels = [b'lobby', b'general', b'whatever']
 exception_users = ['robocimp', 'schlongdaime', 'schlong', 'yond', 'yondaime']
 exception_msg = "Nice try. You think this is funny? How about *this* instead:"
 muffin_msg_1 = 'throws **'
-muffin_msg_2 = '** into a basin full of tasty Muffins. CimpMuffin  CimpMuffin  CimpMuffin  CimpMuffin'
+muffin_msg_2 = '** into a basin full of tasty Muffins. CimpMuffin  CimpMuffin  CimpMuffin '
 # allowed_channels = [b'general', b'whatever']
 
 commands = "```!flip username \n" \
